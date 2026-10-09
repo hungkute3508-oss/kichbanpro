@@ -23,6 +23,11 @@ venv/
 .idea/
 .vscode/
 
+# PyInstaller build outputs
+build/
+dist/
+*.spec
+
 # OS specific files
 Thumbs.db
 Desktop.ini

@@ -1,10 +1,17 @@
 import json
 import os
+import sys
 from pathlib import Path
 from typing import Any, Dict
 from core import DEFAULT_METADATA_TEMPLATE, DEFAULT_PROMPT
 
-CONFIG_FILE = Path(__file__).parent / "config.json"
+def get_config_file_path() -> Path:
+    """Xác định vị trí config.json: cạnh .exe nếu chạy dạng đóng gói, hoặc cạnh file mã nguồn."""
+    if getattr(sys, "frozen", False):
+        return Path(sys.executable).parent / "config.json"
+    return Path(__file__).parent / "config.json"
+
+CONFIG_FILE = get_config_file_path()
 
 DEFAULT_CONFIG: Dict[str, Any] = {
     "mode": "chrome",  # "chrome" (Remote Debug) hoặc "api" (Gemini API)

@@ -116,11 +116,36 @@ def sanitize_filename(name: str, max_length: int = 120) -> str:
     return name
 
 
+def find_binary(binary_name: str) -> str:
+    """
+    Tìm đường dẫn binary (ffmpeg, ffprobe) ưu tiên cạnh file .exe / thư mục cài đặt trước,
+    sau đó fallback sang PATH hệ thống.
+    """
+    exe_name = f"{binary_name}.exe" if sys.platform.startswith("win") and not binary_name.endswith(".exe") else binary_name
+
+    # 1. Kiểm tra cạnh sys.executable (khi chạy dưới dạng PyInstaller .exe)
+    exe_dir = Path(sys.executable).parent
+    for sub in [exe_dir, exe_dir / "_internal", exe_dir / "bin"]:
+        p = sub / exe_name
+        if p.is_file():
+            return str(p)
+
+    # 2. Kiểm tra cạnh file script hiện tại
+    script_dir = Path(__file__).resolve().parent
+    for sub in [script_dir, script_dir / "bin"]:
+        p = sub / exe_name
+        if p.is_file():
+            return str(p)
+
+    # 3. Fallback theo tên trong PATH
+    return binary_name
+
+
 def get_media_duration(file_path: str) -> Tuple[float, str]:
     """Lấy thời lượng chính xác của video hoặc audio bằng ffprobe."""
     try:
         cmd = [
-            "ffprobe",
+            find_binary("ffprobe"),
             "-v",
             "error",
             "-show_entries",
@@ -161,7 +186,7 @@ def extract_audio(
         output_audio_path = str(temp_dir / f"{video_p.stem}_audio.mp3")
 
     cmd = [
-        "ffmpeg",
+        find_binary("ffmpeg"),
         "-y",
         "-i",
         str(video_p),
